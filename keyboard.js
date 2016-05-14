@@ -1,4 +1,4 @@
-var Keyboard = function()
+var keyboard = function()
 {
 		var self = this;
 
@@ -24,15 +24,15 @@ var Keyboard = function()
 		this.KEY_SHIFT = 16;
 };
 
-Keyboard.prototype.onKeyDown = function(evt)
+keyboard.prototype.onKeyDown = function(evt)
 {
 	this.keys[evt.keyCode] = true;
 };
-Keyboard.prototype.onKeyUp = function(evt)
+keyboard.prototype.onKeyUp = function(evt)
 {
 	this.keys[evt.keyCode] = false;
 };
-Keyboard.prototype.isKeyDown = function(keyCode)
+keyboard.prototype.isKeyDown = function(keyCode)
 {
 	return this.keys[keyCode];
 };
