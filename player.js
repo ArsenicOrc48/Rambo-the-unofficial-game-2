@@ -9,6 +9,7 @@ var ANIM_JUMP_RIGHT = 4;
 var ANIM_WALK_RIGHT = 5;
 var ANIM_MAX = 6;
 
+var lives = 3;
 
 var Player = function() 
 {
@@ -40,6 +41,7 @@ var Player = function()
 	this.velocity = new Vector2();
 	this.velocity.set(0,0);
 
+	this.isDead = false;
 	this.falling = true;
 	this.jumping = false;
 

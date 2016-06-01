@@ -192,7 +192,7 @@ function drawMap()
 	// life counter
 	for(var i=0; i<lives; i++)
 	{
-		context.drawImage(heartImage, 20 + ((heartImage.width+2)*i), 10);
+		context.drawImage(heartImage, 5 + ((heartImage.width/ 4)*i), 1);
 	}
 }
 
@@ -352,13 +352,10 @@ function runGame(deltaTime)
 
 	//set lives
 	var respawnTimer = 1;
-	for(var i=0; i<lives; i++)
-	{
-		context.drawImage(heartImage, 5 + ((heartImage.width+2)*i), 480);
-	}
+	
 	if(player.isDead == false)
 	{
-		if(player.position.Y > SCREEN_HEIGHT)
+		if(player.position.y > SCREEN_HEIGHT)
 		{
 				player.isDead == true;
 				lives -= 1;
