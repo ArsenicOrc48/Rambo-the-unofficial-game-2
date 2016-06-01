@@ -385,34 +385,39 @@ function runGame(deltaTime)
 var endTimer = 5
 function runGameOver(deltaTime, x, y)
 {
+	for(var y=0; y<15; y++)
+		{
+			for(var x=0; x<20; x++)
+			{
+				context.drawImage(firstbackground[y][x], x*32, y*32);
+			}
+		}
 	context.fillStyle = "#F20C0C";
 	context.font = "45px Arial";
-	context.fillText("GAME OVER", 180, 250);
+	context.fillText("GAME OVER", 230, 250);
 
 	context.fillStyle = "#F20C0C";
 	context.font = "20px Arial";
-	context.fillText("Score: " + score, 260, 290);
-
-	context.fillStyle = "#F20C0C";
-	context.font = "20px Arial";
-	context.fillText("Refresh To Restart", 200, 500);
+	context.fillText("Score: " + score, 290, 290);
 }
 
 function runGameWin(deltaTime, x, y)
 {
 	endTimer -= deltaTime
-
+	for(var y=0; y<15; y++)
+		{
+			for(var x=0; x<20; x++)
+			{
+				context.drawImage(firstbackground[y][x], x*32, y*32);
+			}
+		}
 	context.fillStyle = "#F20C0C";
 	context.font = "45px Arial";
-	context.fillText("YOU WIN", 180, 250);
+	context.fillText("YOU WIN", 230, 250);
 
 	context.fillStyle = "#F20C0C";
 	context.font = "20px Arial";
-	context.fillText("Score: " + score, 260, 290);
-
-	context.fillStyle = "#F20C0C";
-	context.font = "20px Arial";
-	context.fillText("Refresh To Restart", 170, 500);
+	context.fillText("Score: " + score, 290, 290);
 }
 
 function run()
