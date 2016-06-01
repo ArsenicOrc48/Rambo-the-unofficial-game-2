@@ -9,6 +9,7 @@ var ANIM_JUMP_RIGHT = 4;
 var ANIM_WALK_RIGHT = 5;
 var ANIM_MAX = 6;
 
+
 var Player = function() 
 {
 	this.sprite = new Sprite("ChuckNorris.png");
@@ -31,7 +32,7 @@ var Player = function()
 	}
 
 	this.position = new Vector2();
-	this.position.set( 9*TILE, 0*TILE );
+	this.position.set( 1*35, 10*35);
 
 	this.width = 159;
 	this.height = 163;
@@ -43,6 +44,8 @@ var Player = function()
 	this.jumping = false;
 
 	this.direction = LEFT;
+
+	this.cooldownTimer = 0;
 };
 
 Player.prototype.update = function (deltaTime) 
@@ -58,14 +61,46 @@ Player.prototype.update = function (deltaTime)
 	if(keyboard.isKeyDown(keyboard.KEY_LEFT) == true) 
 	{
 		left = true;
+		this.direction = LEFT;
+		if(this.sprite.currentAnimation != ANIM_WALK_LEFT &&
+			this.jumping == false)
+			this.sprite.setAnimation(ANIM_WALK_LEFT);
 	}
-	if(keyboard.isKeyDown(keyboard.KEY_RIGHT) == true) 
+	else if(keyboard.isKeyDown(keyboard.KEY_RIGHT) == true) 
 	{
 		right = true;
+		this.direction = RIGHT;
+		if(this.sprite.currentAnimation != ANIM_WALK_RIGHT &&
+			this.jumping == false)
+			this.sprite.setAnimation(ANIM_WALK_RIGHT);
+	}
+	else
+	{
+		if(this.jumping == false && this.falling == false)
+		{
+			if(this.direction == LEFT)
+			{
+				if(this.sprite.currentAnimation != ANIM_IDLE_LEFT)
+				this.sprite.setAnimation(ANIM_IDLE_LEFT);
+			}
+			else
+			{
+				if(this.sprite.currentAnimation != ANIM_IDLE_RIGHT)
+				this.sprite.setAnimation(ANIM_IDLE_RIGHT);
+			}
+		}	
 	}
 	if(keyboard.isKeyDown(keyboard.KEY_SPACE) == true) 
 	{
 		jump = true;
+		if(left == true) 
+		{
+			this.sprite.setAnimation(ANIM_JUMP_LEFT);
+		}
+		if(right == true) 
+		{
+			this.sprite.setAnimation(ANIM_JUMP_RIGHT);
+		}
 	}
 
 	var wasleft = this.velocity.x < 0;
@@ -78,16 +113,18 @@ Player.prototype.update = function (deltaTime)
 		ddx = ddx - ACCEL; 			// player wants to go left
 	else if (wasleft)
 		ddx = ddx + FRICTION;		 // player was going left, but not any more
-
 	if (right)
 		ddx = ddx + ACCEL; 			// player wants to go right
 	else if (wasright)
 		ddx = ddx - FRICTION; 		// player was going right, but not any more
-
 	if (jump && !this.jumping && !falling)
 	{
 		ddy = ddy - JUMP; // apply an instantaneous (large) vertical impulse
 		this.jumping = true;
+		if(this.direction == LEFT)
+			this.sprite.setAnimation(ANIM_JUMP_LEFT)
+		else
+			this.sprite.setAnimation(ANIM_JUMP_RIGHT)
 	}
 
 	// calculate the new position and velocity:
@@ -168,9 +205,14 @@ Player.prototype.update = function (deltaTime)
 			this.velocity.x = 0; // stop horizontal velocity
 		}
 	}
+
+	if(cellAtTileCoord(LAYER_OBJECT_TRIGGERS, tx, ty)== true)
+	{
+		gameState = STATE_GAMEWIN;
+	}
 };
 
 Player.prototype.draw = function() 
 {
-	this.sprite.draw(context, this.position.x, this.position.y);
+	this.sprite.draw(context, this.position.x - worldOffsetX,this.position.y);
 }
