@@ -82,6 +82,7 @@ var JUMP = METER * 1500;
 
 //sound
 var musicBackground;
+var sfxFire;
 
 // load an image to draw
 var position = new Vector2();
@@ -273,6 +274,16 @@ function initialize()
 		volume: 0.5
 	} );
 	musicBackground.play();
+
+	sfxFire = new Howl(
+	{
+		urls: ["fireEffect.ogg"],
+		buffer: true,
+		volume: 1,
+		onend: function() {
+			isSfxPlaying = false;
+		}
+	} );
 }
 
 function intersects (x1, y1, w1, h1, x2, y2, w2, h2)
@@ -335,6 +346,7 @@ function runGame(deltaTime)
 			if(intersects(coins[i].position.x, coins[i].position.y, TILE, TILE,
 					player.position.x, player.position.y, player.width/2, player.height/2)== true)
 			{
+				sfxFire.play();
 				score += 1;
 				coins.splice(i, 1);
 				break;
