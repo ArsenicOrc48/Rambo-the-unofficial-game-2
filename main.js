@@ -48,19 +48,17 @@ var STATE_GAMEWIN = 3;
 var gameState = STATE_SPLASH;
 
 var LAYER_COUNT = 3;
-var LAYER_BACKGOUND = 0;
-var LAYER_PLATFORMS = 1;
+var LAYER_BACKGROUND = 0; 
+var LAYER_PLATFORMS = 1; 
+var LAYER_LADDERS = 2; 
+var LAYER_OBJECT_ENEMIES = 3; 
+var LAYER_OBJECT_TRIGGERS = 4; 
 
-
-var LAYER_OBJECT_TRIGGERS = 3;
-var LAYER_OBJECT_COINS= 4;
-var LAYER_OBJECT_ENEMIES = 5;
+var LAYER_OBJECT_COINS= 5;
 
 var coins = [];
-var enemies = [];
+var bullets = [];
 
-var ENEMY_MAXDX = METER * 5;
-var ENEMY_ACCEL = ENEMY_MAXDX * 2;
 
 
 //size of map in tiles
@@ -82,7 +80,7 @@ var MAXDX = METER * 10;
 var MAXDY = METER * 15;
 var ACCEL = MAXDX * 2;
 var FRICTION = MAXDX * 6;
-var JUMP = METER * 1500;
+var JUMP = METER * 5000;
 
 //sound
 var musicBackground;
@@ -96,6 +94,12 @@ var keyboard = new keyboard();
 
 var score = 0;
 var lives = 3;
+
+//some enemy vars
+var ENEMY_MAXDX = METER * 5;
+var ENEMY_ACCEL = ENEMY_MAXDX * 2;
+var enemies = [];
+
 
 //loading image
 var tileset = document.createElement("img");
@@ -233,28 +237,7 @@ function initialize()
 			}
 		}
 	}
-	//trigger layer in collision map - for the door to finish the game
-	cells[LAYER_OBJECT_TRIGGERS] = [];
-	idx = 0;
-	for(var y = 0; y < level1.layers[LAYER_OBJECT_TRIGGERS].height; y++)
-	{
-		cells[LAYER_OBJECT_TRIGGERS][y] = [];
-		for(var x = 0; x < level1.layers[LAYER_OBJECT_TRIGGERS].width; x++)
-		{
-			if(level1.layers[LAYER_OBJECT_TRIGGERS].data[idx] != 0)
-			{
-				cells[LAYER_OBJECT_TRIGGERS][y][x] = 1;
-				cells[LAYER_OBJECT_TRIGGERS][y-1][x] = 1;
-				cells[LAYER_OBJECT_TRIGGERS][y-1][x+1] = 1;
-				cells[LAYER_OBJECT_TRIGGERS][y][x+1] = 1;
-			}
-			else if(cells[LAYER_OBJECT_TRIGGERS][y][x] != 1)
-			{
-				cells[LAYER_OBJECT_TRIGGERS][y][x] = 0;
-			}
-			idx++;
-		}
-	}
+
 	//add enemies
 	idx = 0;
 	for(var y = 0; y < level1.layers[LAYER_OBJECT_ENEMIES].height; y++)
@@ -282,6 +265,28 @@ function initialize()
             }
         }
     }
+	//trigger layer in collision map - for the door to finish the game
+	cells[LAYER_OBJECT_TRIGGERS] = [];
+	idx = 0;
+	for(var y = 0; y < level1.layers[LAYER_OBJECT_TRIGGERS].height; y++)
+	{
+		cells[LAYER_OBJECT_TRIGGERS][y] = [];
+		for(var x = 0; x < level1.layers[LAYER_OBJECT_TRIGGERS].width; x++)
+		{
+			if(level1.layers[LAYER_OBJECT_TRIGGERS].data[idx] != 0)
+			{
+				cells[LAYER_OBJECT_TRIGGERS][y][x] = 1;
+				cells[LAYER_OBJECT_TRIGGERS][y-1][x] = 1;
+				cells[LAYER_OBJECT_TRIGGERS][y-1][x+1] = 1;
+				cells[LAYER_OBJECT_TRIGGERS][y][x+1] = 1;
+			}
+			else if(cells[LAYER_OBJECT_TRIGGERS][y][x] != 1)
+			{
+				cells[LAYER_OBJECT_TRIGGERS][y][x] = 0;
+			}
+			idx++;
+		}
+	}
 	//add coins
 	idx = 0;
 	for(var y = 0; y < level1.layers[LAYER_OBJECT_COINS].height; y++)
@@ -385,25 +390,30 @@ function runGame(deltaTime)
 			}
 		}
 
-	var hit=false;
+	//update bullets
+	var hit = false;
 	for(var i=0; i<bullets.length; i++)
 	{
 		bullets[i].update(deltaTime);
-		if( bullets[i].position.x - worldOffsetX < 0 ||
+		//check if the bullet went offscreen
+		//rememeber we are also scrolling the new world based on the player's
+		//position (so we need to find the bullet's screen coords)
+		if(bullets[i].position.x - worldOffsetX < 0 ||
 			bullets[i].position.x - worldOffsetX > SCREEN_WIDTH)
 		{
 			hit = true;
 		}
-
+		//also check if the bullet hit an enemy
 		for(var j=0; j<enemies.length; j++)
 		{
-			if(intersects( bullets[i].position.x, bullets[i].position.y, TILE, TILE,
-				enemies[j].position.x, enemies[j].position.y, TILE, TILE) == true)
+			if(intersects(enemies[j].position.x, enemies[j].position.y, TILE, TILE,
+				bullets[i].position.x, bullets[i].position.y, TILE, TILE)== true)
 			{
-				// kill both the bullet and the enemy
+				//kill both bullet and enemy
 				enemies.splice(j, 1);
+				enemies.life -=1;
 				hit = true;
-				// increment the player score
+				//increment score
 				score += 1;
 				break;
 			}
@@ -414,10 +424,45 @@ function runGame(deltaTime)
 			break;
 		}
 	}
+	for(var j=0; j<enemies.length; j++)
+		{
+			if(player.isDead == false)
+			{
+				if(intersects(enemies[j].position.x, enemies[j].position.y, TILE, TILE,
+					player.position.x, player.position.y, player.width/2, player.height/2)== true)
+				{
+				//player.isDead == true;
+				lives -= 1;
+				player.position.set(1*35, 12*35);
+				break;
+				}
+			}
+		}
+		//increase coin count - up in 3
+		for(var i=0; i<coins.length; i++)
+		{
+			if(intersects(coins[i].position.x, coins[i].position.y, TILE, TILE,
+					player.position.x, player.position.y, player.width/2, player.height/2)== true)
+			{
+				score += 1; //increases by 3. dont know why and cant fix it :(
+				coins.splice(i, 1);
+				break;
+			}
+		}
+
 	//DRAW
 	drawMap();
 	player.draw();
 	
+	for(var i=0; i<enemies.length; i++)
+	{
+		enemies[i].draw(deltaTime);
+	}
+	
+	for(var i=0; i<bullets.length; i++)
+	{
+		bullets[i].draw(deltaTime);
+	}
 	for(var i=0; i<coins.length; i++)
 	{
 		coins[i].draw(deltaTime);
@@ -432,7 +477,7 @@ function runGame(deltaTime)
 		{
 				player.isDead == true;
 				lives -= 1;
-				player.position.set(1*35, 10*35);
+				player.position.set(1*50, 10*35);
 		}
 		if(lives == 0)
 		{
